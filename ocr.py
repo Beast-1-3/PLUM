@@ -1,3 +1,4 @@
+# OCR Module - Tesseract Integration
 """
 OCR Module - Step 1: Text Extraction
 Handles image processing and text extraction using pytesseract
