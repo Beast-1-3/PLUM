@@ -514,3 +514,13 @@ MIT License - Feel free to use this project for your own purposes.
 ## Acknowledgments
 
 Built with FastAPI, Google Gemini AI, and Tesseract OCR.
+
+
+## API Examples
+
+### Process Text Request
+```bash
+curl -X POST "http://localhost:8000/process-text" \\
+  -H "Content-Type: application/json" \\
+  -d '{"text":"Meeting tomorrow at 3pm with client"}'
+```
