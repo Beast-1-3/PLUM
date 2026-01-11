@@ -539,3 +539,14 @@ uvicorn app:app --reload --port 8000
 pip install -r requirements.txt
 uvicorn app:app --host 0.0.0.0 --port 8000 --workers 4
 ```
+
+
+## License
+
+MIT License
+
+## Acknowledgments
+
+- FastAPI for the web framework
+- Google Gemini AI for intelligent processing
+- Tesseract OCR for image text extraction
