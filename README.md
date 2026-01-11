@@ -524,3 +524,18 @@ curl -X POST "http://localhost:8000/process-text" \\
   -H "Content-Type: application/json" \\
   -d '{"text":"Meeting tomorrow at 3pm with client"}'
 ```
+
+
+## Deployment
+
+### Local Development
+```bash
+pip install -r requirements.txt
+uvicorn app:app --reload --port 8000
+```
+
+### Production
+```bash
+pip install -r requirements.txt
+uvicorn app:app --host 0.0.0.0 --port 8000 --workers 4
+```
