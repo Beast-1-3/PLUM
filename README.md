@@ -8,9 +8,13 @@ An intelligent backend service that converts natural language or image-based app
 **Tech Stack**: Python, FastAPI, Google Gemini AI, pytesseract  
 
 
+## 🚀 Live Deployment
+
+The service is live at: [https://ai-appointment-scheduler-ufc4.onrender.com](https://ai-appointment-scheduler-ufc4.onrender.com)
+
 ---
 
-##  Architecture
+## 🏗️ Architecture
 
 ### Multi-Step AI Pipeline
 
@@ -122,16 +126,25 @@ file: <image_file>
 
 #### Text Input
 ```bash
+# Local
 curl -X POST http://localhost:8000/schedule \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "Book dentist next Friday at 3pm"
-  }'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "text=Book dentist next Friday at 3pm"
+
+# Live
+curl -X POST https://ai-appointment-scheduler-ufc4.onrender.com/schedule \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "text=Book dentist next Friday at 3pm"
 ```
 
 #### Image Input
 ```bash
+# Local
 curl -X POST http://localhost:8000/schedule \
+  -F "file=@appointment.png"
+
+# Live
+curl -X POST https://ai-appointment-scheduler-ufc4.onrender.com/schedule \
   -F "file=@appointment.png"
 ```
 
