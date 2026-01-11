@@ -7,33 +7,19 @@ venv/
 env/
 ENV/
 .venv
-
-# Environment variables
 .env
 .env.local
-
-# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# Testing
 tests/
 .pytest_cache/
 .coverage
 htmlcov/
-
-# Logs
 *.log
-
-# OS
 .DS_Store
 Thumbs.db
-
-# Scripts
 setup_git_commits.sh
 complete_git_setup.sh
-
-# Setup scripts
 *.sh
