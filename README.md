@@ -4,13 +4,13 @@
 
 An intelligent backend service that converts natural language or image-based appointment requests into structured scheduling JSON using a sophisticated multi-step AI pipeline.
 
-**Built for**: SDE Intern Assignment  
+
 **Tech Stack**: Python, FastAPI, Google Gemini AI, pytesseract  
-**Timezone**: Asia/Kolkata
+
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ### Multi-Step AI Pipeline
 
@@ -45,7 +45,7 @@ Input (Text/Image)
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -98,19 +98,17 @@ GET /
 GET /health
 ```
 
-### 2. Schedule from Text
+### 2. Schedule 
 ```bash
-POST /schedule/text
+POST /schedule
 Content-Type: application/json
 
 {
   "text": "Book dentist next Friday at 3pm"
 }
 ```
-
-### 3. Schedule from Image
 ```bash
-POST /schedule/image
+POST /schedule
 Content-Type: multipart/form-data
 
 file: <image_file>
@@ -124,7 +122,7 @@ file: <image_file>
 
 #### Text Input
 ```bash
-curl -X POST http://localhost:8000/schedule/text \
+curl -X POST http://localhost:8000/schedule \
   -H "Content-Type: application/json" \
   -d '{
     "text": "Book dentist next Friday at 3pm"
@@ -133,7 +131,7 @@ curl -X POST http://localhost:8000/schedule/text \
 
 #### Image Input
 ```bash
-curl -X POST http://localhost:8000/schedule/image \
+curl -X POST http://localhost:8000/schedule \
   -F "file=@appointment.png"
 ```
 
@@ -142,7 +140,7 @@ curl -X POST http://localhost:8000/schedule/image \
 1. Import the API endpoints
 2. **Text Endpoint**:
    - Method: POST
-   - URL: `http://localhost:8000/schedule/text`
+   - URL: `http://localhost:8000/schedule`
    - Body (JSON):
      ```json
      {
@@ -152,7 +150,7 @@ curl -X POST http://localhost:8000/schedule/image \
 
 3. **Image Endpoint**:
    - Method: POST
-   - URL: `http://localhost:8000/schedule/image`
+   - URL: `http://localhost:8000/schedule`
    - Body: form-data
    - Key: `file` (type: File)
    - Value: Select image file
@@ -237,7 +235,6 @@ curl -X POST http://localhost:8000/schedule/image \
 
 ```json
 {
-  // ... pipeline steps ...
   "guardrail": {
     "status": "needs_clarification",
     "message": "Clarification needed: Time is ambiguous or not specified"
@@ -252,7 +249,7 @@ curl -X POST http://localhost:8000/schedule/image \
 
 ---
 
-## 🤖 Gemini AI Integration
+## Gemini AI Integration
 
 ### Purpose
 
@@ -280,16 +277,10 @@ Gemini AI is used as a **validation and reasoning layer**, NOT as a direct repla
 # - SUGGESTIONS: Corrections needed
 ```
 
-### API Key Security
-
-- ✅ API key read from environment variable
-- ✅ Never hardcoded
-- ✅ Included in .gitignore
-- ✅ Example file provided (.env.example)
 
 ---
 
-## 🛡️ Guardrail Strategy
+##  Guardrail Strategy
 
 ### Purpose
 Prevent incorrect appointments by catching issues before final scheduling.
@@ -333,220 +324,9 @@ ai-appointment-scheduler/
 ├── README.md             # This file
 ├── tests/                # Test files
 │   ├── sample_text.json
-│   └── sample_image.png
-└── docs/
-    └── ARCHITECTURE.md    # Detailed architecture
+    └── sample_image.png
+
 ```
 
 ---
 
-## 🎓 Design Decisions
-
-### 1. Modular Architecture
-- **Why**: Separation of concerns, easier testing, maintainability
-- **How**: Each pipeline stage in separate module
-
-### 2. Pydantic Schemas
-- **Why**: Type safety, automatic validation, clear contracts
-- **How**: All inputs/outputs defined as Pydantic models
-
-### 3. Gemini as Validator
-- **Why**: Leverage AI for validation without replacing core logic
-- **How**: Structured prompts with specific validation questions
-
-### 4. Confidence Scoring
-- **Why**: Quantify uncertainty, enable intelligent guardrails
-- **How**: Weighted average across pipeline stages
-
-### 5. Timezone Handling
-- **Why**: Avoid ambiguity, ensure consistency
-- **How**: All times normalized to Asia/Kolkata with zoneinfo
-
----
-
-## 🔒 Production Readiness
-
-### Implemented Best Practices
-
-✅ **Error Handling**: Try-catch blocks with proper logging  
-✅ **Input Validation**: Pydantic models enforce schemas  
-✅ **Logging**: Comprehensive logging at INFO level  
-✅ **Environment Variables**: Secrets from environment  
-✅ **CORS**: Enabled for frontend integration  
-✅ **Health Checks**: Dedicated endpoints  
-✅ **Type Hints**: Full type annotations  
-✅ **Documentation**: Inline comments + README  
-
----
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**1. Tesseract not found**
-```bash
-# Verify installation
-tesseract --version
-
-# macOS fix
-brew install tesseract
-
-# Add to PATH if needed
-export PATH="/usr/local/bin:$PATH"
-```
-
-**2. Gemini API errors**
-```bash
-# Check API key is set
-echo $GEMINI_API_KEY
-
-# Verify key is valid at:
-# https://makersuite.google.com/app/apikey
-```
-
-**3. Date parsing issues**
-- Ensure input includes relative references (today, tomorrow, next Friday)
-- Use explicit dates for better accuracy (January 15, 2026)
-
----
-
-## 📊 Sample Outputs
-
-### Example 1: Perfect Match
-**Input**: "Book dentist next Friday at 3pm"
-
-**Output**:
-- ✅ Department: dentist
-- ✅ Date: 2026-01-17
-- ✅ Time: 15:00
-- ✅ Status: ok
-- ✅ Confidence: 0.93
-
-### Example 2: Needs Clarification
-**Input**: "Schedule something tomorrow"
-
-**Output**:
-- ❌ Department: NOT FOUND
-- ✅ Date: 2026-01-12
-- ❌ Time: UNKNOWN
-- ⚠️ Status: needs_clarification
-- ⚠️ Message: "Department not specified; Time is ambiguous"
-
----
-
-## 🎬 Demo Flow
-
-1. Start server: `python app.py`
-2. Open Postman/curl
-3. Send test request
-4. Observe pipeline stages in response
-5. Check logs for detailed processing
-6. Verify guardrails catch invalid inputs
-
----
-
-## 📝 License
-
-This project is created for educational purposes as part of an SDE Intern assignment.
-
----
-
-## 👤 Author
-
-Built with ❤️ following production-grade backend practices and AI engineering principles.
-
-**Assignment Requirements**: ✅ All deliverables completed  
-**Code Quality**: Production-ready  
-**Documentation**: Comprehensive  
-
----
-
-## 🔗 Additional Resources
-
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Google Gemini API](https://ai.google.dev/)
-- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract)
-- [dateparser Library](https://dateparser.readthedocs.io/)
-
----
-
-**Status**: ✅ Fully Functional | 🎯 Assignment Complete | 🚀 Production Ready
-
-## Testing
-
-You can test the API using the sample data provided in the tests directory or with custom requests.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Example Requests
-
-### Text Input
-```bash
-curl -X POST "http://localhost:8000/process-text" \
-  -H "Content-Type: application/json" \
-  -d '{"text":"Meeting with John tomorrow at 3pm"}'
-```
-
-### Image Input
-```bash
-curl -X POST "http://localhost:8000/process-image" \
-  -F "file=@appointment.jpg"
-```
-
-## Deployment
-
-To deploy this application:
-1. Set up environment variables
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run the server: `uvicorn app:app --host 0.0.0.0 --port 8000`
-
-For production, consider using:
-- Gunicorn with Uvicorn workers
-- Docker containerization
-- Environment-specific configuration
-
-## License
-
-MIT License - Feel free to use this project for your own purposes.
-
-## Acknowledgments
-
-Built with FastAPI, Google Gemini AI, and Tesseract OCR.
-
-
-## API Examples
-
-### Process Text Request
-```bash
-curl -X POST "http://localhost:8000/process-text" \\
-  -H "Content-Type: application/json" \\
-  -d '{"text":"Meeting tomorrow at 3pm with client"}'
-```
-
-
-## Deployment
-
-### Local Development
-```bash
-pip install -r requirements.txt
-uvicorn app:app --reload --port 8000
-```
-
-### Production
-```bash
-pip install -r requirements.txt
-uvicorn app:app --host 0.0.0.0 --port 8000 --workers 4
-```
-
-
-## License
-
-MIT License
-
-## Acknowledgments
-
-- FastAPI for the web framework
-- Google Gemini AI for intelligent processing
-- Tesseract OCR for image text extraction
