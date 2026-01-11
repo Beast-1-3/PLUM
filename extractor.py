@@ -1,3 +1,4 @@
+# AI-Powered Appointment Information Extractor
 """
 Entity Extractor Module - Step 2: Entity Extraction
 Extracts date, time, and department entities from raw text using regex and NLP
