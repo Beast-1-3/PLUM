@@ -34,3 +34,6 @@ Thumbs.db
 # Scripts
 setup_git_commits.sh
 complete_git_setup.sh
+
+# Setup scripts
+*.sh
