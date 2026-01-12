@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: ai-appointment-scheduler
+    runtime: docker
+    plan: free
+    region: ohio
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PORT
+        value: 8000
+    healthCheckPath: /health

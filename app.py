@@ -2,9 +2,10 @@ import logging
 import os
 from typing import Optional
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import httpx
 
 load_dotenv()
 
@@ -58,7 +59,26 @@ except Exception as e:
     logger.warning(f"Failed to initialize validator: {e}")
     ai_validator = None
 
-def run_guardrail_check(normalized_output, entities):
+async def get_timezone_from_ip(ip: str):
+    if ip in ["127.0.0.1", "localhost", "::1"] or ip.startswith("192.168.") or ip.startswith("10."):
+        logger.info(f"Local IP detected ({ip}), defaulting to Asia/Kolkata")
+        return "Asia/Kolkata"
+    
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            response = await client.get(f"http://ip-api.com/json/{ip}")
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == "success":
+                    tz = data.get("timezone")
+                    logger.info(f"Detected timezone '{tz}' for IP '{ip}'")
+                    return tz
+    except Exception as e:
+        logger.error(f"Failed to detect timezone for IP {ip}: {e}")
+    
+    return "Asia/Kolkata"
+
+def run_guardrail_check(normalized_output, entities, tz_str):
     issues = []
     
     if not entities.entities.department:
@@ -71,7 +91,7 @@ def run_guardrail_check(normalized_output, entities):
         issues.append("Time is ambiguous or not specified")
     
     if normalized_output.normalized.date != "UNKNOWN" and normalized_output.normalized.time != "UNKNOWN":
-        if not normalizer.validate_datetime(normalized_output.normalized.date, normalized_output.normalized.time):
+        if not normalizer.validate_datetime(normalized_output.normalized.date, normalized_output.normalized.time, tz_str):
             issues.append("Appointment time is in the past or invalid")
     
     if issues:
@@ -81,14 +101,14 @@ def run_guardrail_check(normalized_output, entities):
     
     return GuardrailOutput(status="ok")
 
-def process_appointment_pipeline(raw_text, ocr_confidence=1.0, include_pipeline=True):
-    logger.info(f"Processing: '{raw_text}'")
+def process_appointment_pipeline(raw_text, tz_str="UTC", ocr_confidence=1.0, include_pipeline=True):
+    logger.info(f"Processing: '{raw_text}' in timezone: {tz_str}")
     
     step1_ocr = OCROutput(raw_text=raw_text, confidence=ocr_confidence)
     step2_extraction = entity_extractor.extract_entities(raw_text)
-    step3_normalization = normalizer.normalize(step2_extraction.entities)
+    step3_normalization = normalizer.normalize(step2_extraction.entities, tz_str)
     
-    guardrail = run_guardrail_check(step3_normalization, step2_extraction)
+    guardrail = run_guardrail_check(step3_normalization, step2_extraction, tz_str)
     
     if guardrail.status == "needs_clarification":
         final_output = FinalOutput(
@@ -101,7 +121,7 @@ def process_appointment_pipeline(raw_text, ocr_confidence=1.0, include_pipeline=
             department=step2_extraction.entities.department or "General",
             date=step3_normalization.normalized.date,
             time=step3_normalization.normalized.time,
-            tz="Asia/Kolkata"
+            tz=tz_str
         )
         final_output = FinalOutput(
             appointment=appointment,
@@ -144,11 +164,22 @@ async def health_check():
 
 @app.post("/schedule", response_model=AppointmentResponse)
 async def schedule_appointment(
+    request: Request,
     text: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
+    timezone: Optional[str] = Form(None),
     include_pipeline: bool = Form(True)
 ):
     try:
+        if timezone:
+            tz_str = timezone
+        else:
+            client_ip = request.headers.get("X-Forwarded-For", request.client.host)
+            if "," in client_ip:
+                client_ip = client_ip.split(",")[0].strip()
+            
+            tz_str = await get_timezone_from_ip(client_ip)
+        
         has_text = text is not None and text.strip()
         has_file = file is not None
         
@@ -160,7 +191,7 @@ async def schedule_appointment(
         
         if has_text:
             ocr_output = ocr_processor.process_text_input(text)
-            return process_appointment_pipeline(ocr_output.raw_text, ocr_output.confidence, include_pipeline)
+            return process_appointment_pipeline(ocr_output.raw_text, tz_str, ocr_output.confidence, include_pipeline)
         else:
             if not file.content_type or not file.content_type.startswith('image/'):
                 raise HTTPException(status_code=400, detail="Invalid file type")
@@ -171,7 +202,7 @@ async def schedule_appointment(
             if not ocr_output.raw_text:
                 raise HTTPException(status_code=400, detail="No text extracted")
             
-            return process_appointment_pipeline(ocr_output.raw_text, ocr_output.confidence, include_pipeline)
+            return process_appointment_pipeline(ocr_output.raw_text, tz_str, ocr_output.confidence, include_pipeline)
             
     except HTTPException:
         raise

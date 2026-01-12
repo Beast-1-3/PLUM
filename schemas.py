@@ -17,7 +17,7 @@ class EntityExtractionOutput(BaseModel):
 class NormalizedData(BaseModel):
     date: str
     time: str
-    tz: str = "Asia/Kolkata"
+    tz: str
 
 class NormalizationOutput(BaseModel):
     normalized: NormalizedData
@@ -31,7 +31,7 @@ class FinalAppointment(BaseModel):
     department: str
     date: str
     time: str
-    tz: str = "Asia/Kolkata"
+    tz: str
 
 class FinalOutput(BaseModel):
     appointment: Optional[FinalAppointment] = None
